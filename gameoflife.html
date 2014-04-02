@@ -1,0 +1,120 @@
+<!DOCTYPE HTML>
+<html>
+<body>
+
+  
+  <canvas id="game" width="800" height="600"></canvas>
+  
+  <script>
+
+	
+	
+	function Game() {
+		var canvas = document.getElementById("game");
+		this.width = canvas.width;
+		this.height = canvas.height;
+		this.context = canvas.getContext("2d");
+		this.context.fillStyle = "grey";
+
+		this.CellSize=10;
+		this.H=this.height/this.CellSize;
+		this.L=this.width/this.CellSize;
+		this.matrix =[];
+		
+		for(var x=0;x<this.L;x++){
+			this.matrix[x]=[];
+		}
+		
+		
+		for(var x=0;x<this.L;x++){
+			for(var y=0;y<this.L;y++){
+				if(Math.random()<0.5)this.matrix[x][y]=false;
+				else this.matrix[x][y]=true;
+			}
+		}
+	}
+
+	Game.prototype.draw = function()
+	{
+
+		this.context.clearRect(0, 0, this.width, this.height);
+		this.context.fillStyle = "black";
+		this.context.fillRect(0, 0, this.width, this.height);
+		this.context.fillStyle = "green";
+		for(var x=0;x<this.L;x++){
+			for(var y=0;y<this.L;y++){
+				if(this.matrix[x][y]){
+					this.context.fillRect(x*this.CellSize, y*this.CellSize, this.CellSize, this.CellSize);
+				}
+			}
+		}
+		for(var x=0;x<this.L;x++)this.context.fillRect(x*this.CellSize, 0, 1,this.height);
+		for(var y=0;y<this.L;y++)this.context.fillRect(0,y*this.CellSize, this.width,1);
+
+	};
+
+	Game.prototype.getNeighbors = function(x,y) 
+	{
+		if(x>=this.L||x<0)return 0;
+		if(y>=this.H||y<0)return 0;
+		
+		var n=0;
+		
+		for(var yy=y-1;yy<=y+1;yy++)
+		for(var xx=x-1;xx<=x+1;xx++)
+		{
+			if(xx>=this.L||xx<0)continue;
+			if(yy>=this.H||yy<0)continue;
+			if(xx==x&&yy==y)continue;
+			if(this.matrix[xx][yy])n++;
+		}
+	    
+		return n;
+	};
+	
+	Game.prototype.update = function()
+	{
+		var temp=[];
+		for(var x=0;x<this.L;x++)temp[x]=[];
+		
+		for(var x=0;x<this.L;x++)
+			for(var y=0;y<this.L;y++)temp[x][y]=this.matrix[x][y];
+			
+		
+		
+		for(var x=0;x<this.L;x++){
+			for(var y=0;y<this.L;y++){
+				var n=this.getNeighbors(x,y);
+				if(this.matrix[x][y]){
+					if(!(n==2||n==3))temp[x][y]=false;
+				}
+				else
+				{
+					if(n==3)temp[x][y]=true;
+				}
+				
+			}
+		}
+		
+		for(var x=0;x<this.L;x++){
+			for(var y=0;y<this.L;y++){
+				this.matrix[x][y]=temp[x][y];
+			}
+		}
+	};
+
+	var game = new Game();
+
+	function MainLoop() {
+	game.update();
+	game.draw();
+	// Call the main loop again at a frame rate of 30fps
+	setTimeout(MainLoop, 33.3333);
+	}
+
+	// Start the game execution
+	MainLoop();
+	</script>
+
+</body>
+</html>
