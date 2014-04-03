@@ -1,42 +1,139 @@
 <!DOCTYPE HTML>
 <html>
+<header>
+	<title>Conway's game of life</title>
+</header>
 <body>
-
   
-  <canvas id="game" width="800" height="600"></canvas>
+  <STYLE type="text/css">
+  body{
+	max-width: 90%;
+	padding: 30px;
+	margin: 0 auto;
+	font: 14px/19px 'Lucida Grande', sans-serif;
+  }
+  #title{
+	font: bold italic 50px Georgia;
+	margin: 0 0 60px 0;
+	text-align: center;
+  }
+  #game{
+	float:left;
+   }
+  #center{
+	margin:auto;
+	height: 600px;
+	width: 1000px;
+  }
+  #options{
+	float:left;
+	margin-left:40px;
+  }
+  #credit{
+	clear:both;
+	font: italic 20px Georgia;
+	margin: 0 0 60px 0;
+	text-align: center;
+  }
+  </STYLE>
   
+    <div id="title">Conway's Game of Life</div>
+	<br>
+  
+	<div id="center">
+		<canvas id="game" width="800" height="600"></canvas>
+		<div id="options">
+			<p>
+				<div id="generations"></div>
+				<div id="state"></div>
+			</p>
+			<p>
+				<button id="pause" onclick="game.togglePause()">Pause</button>
+			</p>
+			<p>
+				<button onclick="game.empty()">Empty</button>
+			</p>
+			<p>
+				<button onclick="game.random()">Random</button>
+			</p>
+		</div>
+    </div>
+	
+	<br>
+	<p id="credit">Created by Ennio Quaglia.</p>
+	
   <script>
 
 	
 	
 	function Game() {
-		var canvas = document.getElementById("game");
-		this.width = canvas.width;
-		this.height = canvas.height;
-		this.context = canvas.getContext("2d");
+		this.canvas = document.getElementById("game");
+		var rect = this.canvas.getBoundingClientRect();
+		this.PosX=parseInt(rect.left);
+		this.PosY=parseInt(rect.top);
+		console.log(this.PosX,this.PosY);
+		this.width = this.canvas.width;
+		this.height = this.canvas.height;
+		this.context = this.canvas.getContext("2d");
 		this.context.fillStyle = "grey";
-
+	
+		this.pause=false;
+		
 		this.CellSize=10;
 		this.H=this.height/this.CellSize;
 		this.L=this.width/this.CellSize;
 		this.matrix =[];
+		this.generations=0;
 		
 		for(var x=0;x<this.L;x++){
 			this.matrix[x]=[];
 		}
 		
-		
+		this.random();
+	}
+	Game.prototype.togglePause = function() 
+	{
+		this.pause=!this.pause;
+		if(this.pause)document.getElementById("pause").innerHTML="Go"; 
+		else document.getElementById("pause").innerHTML="Pause"; 
+	};
+	Game.prototype.setPause = function(a) 
+	{
+		if(a){
+			this.pause=true;
+			document.getElementById("pause").innerHTML="Go"; 
+		}
+		else {
+			document.getElementById("pause").innerHTML="Pause"; 
+			this.pause=false;
+		}
+	};
+	
+	Game.prototype.empty = function() 
+	{
+		for(var x=0;x<this.L;x++){
+			for(var y=0;y<this.L;y++){
+				this.matrix[x][y]=false;
+			}
+		}
+		this.setPause(true);
+		this.generations=0;
+	};
+	Game.prototype.random = function() 
+	{
 		for(var x=0;x<this.L;x++){
 			for(var y=0;y<this.L;y++){
 				if(Math.random()<0.5)this.matrix[x][y]=false;
 				else this.matrix[x][y]=true;
 			}
 		}
-	}
-
+		this.setPause(true);
+		this.generations=0;
+	};
+	
 	Game.prototype.draw = function()
 	{
-
+		document.getElementById("generations").innerHTML="Generations: "+this.generations; 
 		this.context.clearRect(0, 0, this.width, this.height);
 		this.context.fillStyle = "black";
 		this.context.fillRect(0, 0, this.width, this.height);
@@ -48,6 +145,7 @@
 				}
 			}
 		}
+		this.context.fillStyle = "rgb(0,50,0)";
 		for(var x=0;x<this.L;x++)this.context.fillRect(x*this.CellSize, 0, 1,this.height);
 		for(var y=0;y<this.L;y++)this.context.fillRect(0,y*this.CellSize, this.width,1);
 
@@ -74,6 +172,7 @@
 	
 	Game.prototype.update = function()
 	{
+		if(this.pause)return;
 		var temp=[];
 		for(var x=0;x<this.L;x++)temp[x]=[];
 		
@@ -101,6 +200,7 @@
 				this.matrix[x][y]=temp[x][y];
 			}
 		}
+		this.generations++;
 	};
 
 	var game = new Game();
@@ -111,7 +211,29 @@
 	// Call the main loop again at a frame rate of 30fps
 	setTimeout(MainLoop, 33.3333);
 	}
-
+	
+	document.onkeypress=function(e){
+		if(!down){
+			game.togglePause();
+			down=true;
+		}
+	}
+	document.onkeyup=function(e){
+		down=false;
+	}
+	
+	document.onmousemove=document.onclick=function(e){
+		if(e.which==0)return;
+		var rect = game.canvas.getBoundingClientRect();
+		game.PosX=parseInt(rect.left);
+		game.PosY=parseInt(rect.top);
+		console.log(game.PosX,game.PosY);
+		
+		if(e.x<game.PosX||e.x>game.PosX+game.width)return;
+		if(e.y<game.PosY||e.y>game.PosY+game.height)return;
+		game.matrix[parseInt((e.x-game.PosX)/game.CellSize)][parseInt((e.y-game.PosY)/game.CellSize)]=!game.matrix[parseInt((e.x-game.PosX)/game.CellSize)][parseInt((e.y-game.PosY)/game.CellSize)];
+	}
+	
 	// Start the game execution
 	MainLoop();
 	</script>
