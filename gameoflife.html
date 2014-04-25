@@ -1,3 +1,4 @@
+
 <!DOCTYPE HTML>
 <html>
 <header>
@@ -60,10 +61,7 @@
     </div>
 	
 	<br>
-	<p id="credit">Created by Ennio Quaglia.
-		<p><a href="http://www.contatoreaccessi.com" title="contatori siti"><img src="http://counter5.statcounterfree.com/private/contatoreaccessi.php?c=f9794d8c62663ed6c4c0835455096cee" border="0" title="contatori siti" alt="contatori siti"></a>	      	</p>
-		</p>
-	</p>
+	<p id="credit">Created by Ennio Quaglia.</p>
 	
   <script>
 
@@ -164,10 +162,24 @@
 		for(var yy=y-1;yy<=y+1;yy++)
 		for(var xx=x-1;xx<=x+1;xx++)
 		{
+			if(xx==x&&yy==y)continue;
+			
+			var tx=xx,ty=yy;
+			
+			//matrice toroidale
+			if(tx>=this.L)tx=0;
+			if(tx<0)tx=this.L-1;
+			
+			if(ty>=this.H)ty=0;
+			if(ty<0)ty=this.H-1;
+			
+			//matrice non toroidale
+			/*
 			if(xx>=this.L||xx<0)continue;
 			if(yy>=this.H||yy<0)continue;
-			if(xx==x&&yy==y)continue;
-			if(this.matrix[xx][yy])n++;
+			*/
+			
+			if(this.matrix[tx][ty])n++;
 		}
 	    
 		return n;
@@ -207,12 +219,13 @@
 	};
 
 	var game = new Game();
-
+	var down=false;
+	var erase=false;
 	function MainLoop() {
 	game.update();
 	game.draw();
 	// Call the main loop again at a frame rate of 30fps
-	setTimeout(MainLoop, 33.3333);
+	setTimeout(MainLoop, 33.33);
 	}
 	
 	document.onkeypress=function(e){
@@ -225,7 +238,7 @@
 		down=false;
 	}
 	
-	document.onmousemove=document.onclick=function(e){
+	document.onclick=function(e){
 		if(e.which==0)return;
 		var rect = game.canvas.getBoundingClientRect();
 		game.PosX=parseInt(rect.left);
@@ -234,7 +247,20 @@
 		
 		if(e.x<game.PosX||e.x>game.PosX+game.width)return;
 		if(e.y<game.PosY||e.y>game.PosY+game.height)return;
-		game.matrix[parseInt((e.x-game.PosX)/game.CellSize)][parseInt((e.y-game.PosY)/game.CellSize)]=!game.matrix[parseInt((e.x-game.PosX)/game.CellSize)][parseInt((e.y-game.PosY)/game.CellSize)];
+		erase=game.matrix[parseInt((e.x-game.PosX)/game.CellSize)][parseInt((e.y-game.PosY)/game.CellSize)];
+		game.matrix[parseInt((e.x-game.PosX)/game.CellSize)][parseInt((e.y-game.PosY)/game.CellSize)]=!erase;
+	}
+	
+	document.onmousemove=function(e){
+		if(e.which==0)return;
+		var rect = game.canvas.getBoundingClientRect();
+		game.PosX=parseInt(rect.left);
+		game.PosY=parseInt(rect.top);
+		console.log(game.PosX,game.PosY);
+		
+		if(e.x<game.PosX||e.x>game.PosX+game.width)return;
+		if(e.y<game.PosY||e.y>game.PosY+game.height)return;
+		game.matrix[parseInt((e.x-game.PosX)/game.CellSize)][parseInt((e.y-game.PosY)/game.CellSize)]=!erase;
 	}
 	
 	// Start the game execution
